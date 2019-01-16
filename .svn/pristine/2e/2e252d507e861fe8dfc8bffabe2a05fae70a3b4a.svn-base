@@ -1,0 +1,64 @@
+package ch.pschatzmann.news.utils;
+
+/**
+ * Diverse utility methods like quote(), property() etc
+ * @author pschatzmann
+ *
+ */
+public class Utils {
+	/**
+	 * Wrapps the stirng in double quotes
+	 * @param str
+	 * @return
+	 */
+	public static String quote(String str) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("\"");
+		sb.append(str);
+		sb.append("\"");
+		return sb.toString();
+	}
+	
+	/**
+	 * Determines a the value of a system property or environment property
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public static String property(String name) {
+		// java properties
+		String str = System.getProperty(name);
+		if (str == null) {
+			// system environment
+			str = System.getenv(name);
+		}
+		return str;
+	}
+
+	/**
+	 * Determines a the value of a system property or environment property. If
+	 * nothing is defined we use the default value
+	 * 
+	 * @param name
+	 * @param defaultValue
+	 * @return
+	 */
+	public static String property(String name, String defaultValue) {
+		String str = property(name);
+		return str == null ? defaultValue : str;
+	}
+
+
+
+	/**
+	 * Infinite loop
+	 * @throws InterruptedException
+	 */
+	public static void waitForEver() throws InterruptedException {
+		while(true) {
+			Thread.sleep(100000);
+		}
+	}
+
+
+}

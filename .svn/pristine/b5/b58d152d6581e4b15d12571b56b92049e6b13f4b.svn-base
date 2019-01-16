@@ -1,0 +1,144 @@
+package ch.pschatzmann.news;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
+
+import org.apache.solr.client.solrj.beans.Field;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.pschatzmann.news.utils.IKeyGenerator;
+import ch.pschatzmann.news.utils.KeyGenerator;
+
+/**
+ * A Document represents a single published document. If no id has been defined we generate it
+ * using from the content string.
+ * 
+ * @author pschatzmann
+ *
+ */
+public class Document {
+	private static Logger log = LoggerFactory.getLogger(Document.class);
+	private DateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	private String id;
+	private String publishDate = df.format(new Date());
+	private String content;
+	private String author;
+	private String publisher;
+	private String link;
+	private String type = "document";
+	private Collection<String> keys;
+	private IKeyGenerator key = new KeyGenerator();
+	
+	/**
+	 * Constructor with all attributes
+	 * @param id
+	 * @param publisher
+	 * @param date
+	 * @param content
+	 * @param author
+	 * @param link
+	 * @param keys
+	 */
+	public Document(String id, String publisher, Date date, String content, String author, String link, Collection<String> keys){
+		log.info("new document {}",id);
+		this.id = id;
+		this.publisher = publisher;
+		this.publishDate = df.format(date);
+		this.author = author;
+		this.link = link;
+		this.keys = keys;
+		this.setContent_t(content);
+	}
+	
+	/**
+	 * Empty Constructor
+	 */
+	public Document() {
+	}
+
+	public String getPublishDate_t() {
+		return publishDate;
+	}
+	
+	@Field  public void setPublishDate_t(String date) {
+		this.publishDate = date;
+	}
+	
+	public void setPublishDate_t(Date date) {
+		this.publishDate = df.format(date);
+	}
+
+	public String getContent_t() {
+		return content;
+	}
+	
+	@Field  public void setContent_t(String content) {
+		this.content = content;
+		if (this.id ==null) {
+			this.id = key.getKey(this);
+		}
+	}
+	
+	public Collection<String> getKeys() {
+		return keys;
+	}
+	@Field  public void setKeys(Collection<String> topics) {
+		this.keys = topics;
+	}
+	public String getAuthor_t() {
+		return author;
+	}
+	@Field  public void setAuthor_t(String author) {
+		this.author = author;
+	}
+	public String getPublisher_t() {
+		return publisher;
+	}
+	@Field  public void setPublisher_t(String publisher) {
+		this.publisher = publisher;
+	}
+	public String getLink_t() {
+		return link;
+	}
+	@Field  public void setLink_t(String link) {
+		this.link = link;
+	}
+	
+	public String getId() {
+		return id;
+	}
+
+	@Field public void setId(String id) {
+		this.id = id;
+	}
+	
+	public String getType_t() {
+		return type;
+	}
+
+	@Field public void setType_t(String type) {
+		this.type = type;
+	}
+	
+	public String toString() {
+		return this.getContent_t();
+	}
+	
+	public String content() {
+		return this.getContent_t();
+	}
+	
+	public Date date() throws ParseException {
+		return df.parse(this.getPublishDate_t());
+	}
+
+	public String dateFormatted(String format) throws ParseException {
+		SimpleDateFormat df = new SimpleDateFormat(format);
+		return df.format(date());
+	}
+	
+}

@@ -1,0 +1,92 @@
+package ch.pschatzmann.news.test;
+
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import ch.pschatzmann.news.Document;
+import ch.pschatzmann.news.IData;
+import ch.pschatzmann.news.IDocumentStore;
+import ch.pschatzmann.news.HistoryDataNYT;
+import ch.pschatzmann.news.RSSSingleData;
+import ch.pschatzmann.news.SolrDocumentStore;
+
+/**
+ * Tests for NYTHistoryData
+ * 
+ * @author pschatzmann
+ *
+ */
+public class TestNYT implements IDocumentStore {
+	private int count;
+	private SolrDocumentStore store = new SolrDocumentStore();
+	
+	@Test
+	public void testNYT() {
+		HistoryDataNYT data = new HistoryDataNYT(this);
+		data.save(2018,01);
+		System.out.println("Count = "+count);
+		Assert.assertTrue(count > 0);
+	}
+	
+	@Test
+	public void testExistsForce() {
+		HistoryDataNYT data = new HistoryDataNYT(store);
+		data.setForce(true);
+		Assert.assertFalse(data.exists(2018,12));
+	}	
+
+	@Test
+	public void testExists2000_01() {
+		HistoryDataNYT data = new HistoryDataNYT(store);
+		data.setForce(false);
+		Assert.assertTrue(data.exists(2000,1));
+	}	
+	
+	@Test
+	public void testExists2018_01() {
+		HistoryDataNYT data = new HistoryDataNYT(store);
+		data.setForce(false);
+		Assert.assertFalse(data.exists(2018,1));
+	}	
+
+	@Override
+	public void add(Document headline) {
+		System.out.println("add "+headline.getId());
+		Assert.assertNotNull(headline.getContent_t());
+		Assert.assertNotNull(headline.getAuthor_t());
+		Assert.assertNotNull(headline.getId());
+		Assert.assertNotNull(headline.getLink_t());
+		Assert.assertNotNull(headline.getPublishDate_t());
+		Assert.assertNotNull(headline.getKeys());
+		Assert.assertNotNull(headline.getPublishDate_t());
+
+		Assert.assertEquals("nytimes", headline.getPublisher_t());
+		count++;
+	}
+
+	@Override
+	public boolean contains(Map<String, String> criteria) {
+		return false;
+	}
+
+	@Override
+	public boolean contains(String id) {
+		return false;
+	}
+
+	@Override
+	public List<Document> find(String q) {
+		return null;
+	}
+
+	@Override
+	public List<Document> find(Map<String, String> criteria) {
+		return null;
+	}
+	
+	
+	
+}

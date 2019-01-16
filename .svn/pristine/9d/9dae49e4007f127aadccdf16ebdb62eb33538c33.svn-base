@@ -1,0 +1,15 @@
+FROM openjdk:alpine
+MAINTAINER Phil Schatzmann <pschatzmann@gmail.com>
+RUN apk add bash
+RUN mkdir -p /usr/local/bin/news-digest/data
+COPY *.* /usr/local/bin/news-digest/
+WORKDIR /usr/local/bin/news-digest
+RUN chmod +x start.sh
+ENV xmx 3000m 
+
+EXPOSE 9997
+VOLUME /usr/local/bin/news-digest/data
+
+CMD ./start.sh 
+ 
+

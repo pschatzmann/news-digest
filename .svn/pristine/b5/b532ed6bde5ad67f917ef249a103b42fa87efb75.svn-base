@@ -1,0 +1,73 @@
+package ch.pschatzmann.news.utils;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.MapSolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * SolrQuery which is returning QueryResponse objects with length number of
+ * entries as stream as Iterator, Iterable and Stream.
+ * 
+ * @author pschatzmann
+ *
+ */
+public class SolrPagedQuery implements Iterator<QueryResponse>, Iterable<QueryResponse> {
+	private static Logger log = LoggerFactory.getLogger(SolrPagedQuery.class);
+	private QueryResponse response;
+	private Map<String, String> search;
+	private SolrClient client;
+	private long pos = 0;
+	private int length;
+	private long max = 0;
+	private String coreName;
+
+	public SolrPagedQuery(SolrClient client, Map<String, String> search, String coreName, int length) {
+		this.length = length;
+		this.search = search;
+		this.client = client;
+		this.coreName = coreName;
+	}
+
+	@Override
+	public boolean hasNext() {
+		return pos * length <= max;
+	}
+
+	@Override
+	public QueryResponse next() {
+		try {
+			log.info("Processing page {}", pos);
+			MapSolrParams queryParams = new MapSolrParams(search);
+			search.put("rows", "" + length);
+			search.put("start", "" + (pos * length));
+			response = client.query(coreName, queryParams);
+			max = response.getResults().getNumFound();
+			pos++;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return response;
+	}
+
+	@Override
+	public Iterator<QueryResponse> iterator() {
+		return this;
+	}
+
+	/**
+	 * Returns the result as stream
+	 * 
+	 * @return
+	 */
+	public Stream<QueryResponse> stream() {
+		return StreamSupport.stream(this.spliterator(), false);
+	}
+
+}

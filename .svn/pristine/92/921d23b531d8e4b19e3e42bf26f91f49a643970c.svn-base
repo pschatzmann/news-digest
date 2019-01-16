@@ -1,0 +1,4 @@
+nasdaq, http://articlefeeds.nasdaq.com/nasdaq/categories?category=Business
+nasdaq, http://articlefeeds.nasdaq.com/nasdaq/categories?category=Stocks
+nytimes, http://rss.nytimes.com/services/xml/rss/nyt/Business.xml
+nytimes, http://rss.nytimes.com/services/xml/rss/nyt/Technology.xml

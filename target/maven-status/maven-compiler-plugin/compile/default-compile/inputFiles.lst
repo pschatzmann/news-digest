@@ -1,0 +1,16 @@
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/utils/Ticker.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/utils/AnalyseSentiment.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/utils/Throttle.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/RSSSingleData.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/SolrDocumentStore.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/Main.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/utils/RSAKeyGenerator.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/IDocumentStore.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/utils/KeyGenerator.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/NYTHistoryData.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/utils/FixedRateTimer.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/Document.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/utils/IKeyGenerator.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/IData.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/utils/AnalyseNamedEntity.java
+/Users/pschatzmann/Dev/Java/workspace/news-digest/src/main/java/ch/pschatzmann/news/RSSData.java

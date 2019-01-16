@@ -1,0 +1,95 @@
+package ch.pschatzmann.news.test;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import ch.pschatzmann.news.Document;
+import ch.pschatzmann.news.SolrDocumentStore;
+import ch.pschatzmann.news.utils.Ticker;
+
+/**
+ * Tests for the SolrDocumentStore
+ * 
+ * @author pschatzmann
+ *
+ */
+
+public class TestDocumentStore {
+	private SolrDocumentStore store = new SolrDocumentStore();
+
+	@Test
+	public void testSave() {
+		Document doc = new Document();
+		doc.setAuthor_t("author");
+		doc.setId("ID1");
+		doc.setContent_t("this is a test content");
+		doc.setKeys(Arrays.asList("key1", "key2"));
+		doc.setLink_t("https://www.pschatzmann.ch");
+		doc.setPublishDate_t(new Date());
+		doc.setPublisher_t("publisher");
+		store.add(doc);
+	}
+
+	@Test
+	public void testSave1() {
+		Document doc = new Document();
+		doc.setAuthor_t("author1");
+		doc.setContent_t("this is a test content1");
+		doc.setKeys(Arrays.asList("key1", "key2"));
+		doc.setLink_t("https://www.pschatzmann.ch");
+		doc.setPublishDate_t(new Date());
+		doc.setPublisher_t("publisher1");
+		store.add(Arrays.asList(doc));
+	}
+
+	@Test
+	public void testContains() {
+		Assert.assertTrue(store.contains("author:author"));
+	}
+
+	@Test
+	public void testContains1() {
+		Map map = new HashMap();
+		map.put("q", "author:author1");
+		Assert.assertTrue(store.contains(map));
+	}
+
+	@Test
+	public void testSearch() {
+		List<Document> result = store.find("id:ID1");
+		Assert.assertTrue(!result.isEmpty());
+		Document doc = result.get(0);
+		Assert.assertNotNull(doc.getContent_t());
+		Assert.assertNotNull(doc.getAuthor_t());
+		Assert.assertNotNull(doc.getId());
+		Assert.assertNotNull(doc.getLink_t());
+		Assert.assertNotNull(doc.getPublishDate_t());
+		Assert.assertNotNull(doc.getKeys());
+		Assert.assertNotNull(doc.getPublishDate_t());
+
+		
+	}
+
+	@Test
+	public void testSearch1() {
+		Map map = new HashMap();
+		map.put("q", "author:author1");
+		Assert.assertTrue(!store.find(map).isEmpty());
+	}
+	
+	@Test
+	public void testTicker() throws IOException {
+		Map q = Ticker.getSearchTerms("MSFT");		
+		System.out.println(q);
+		Assert.assertEquals("text in ('MSFT', 'Microsoft Corporation')", q.get("q"));
+	}
+		
+
+}

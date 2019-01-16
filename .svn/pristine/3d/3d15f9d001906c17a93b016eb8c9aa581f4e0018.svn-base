@@ -1,0 +1,17 @@
+package ch.pschatzmann.news.utils;
+
+public class Utils {
+	/**
+	 * Wrapps the stirng in double quotes
+	 * @param str
+	 * @return
+	 */
+	public static String quote(String str) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("\"");
+		sb.append(str);
+		sb.append("\"");
+		return sb.toString();
+	}
+
+}

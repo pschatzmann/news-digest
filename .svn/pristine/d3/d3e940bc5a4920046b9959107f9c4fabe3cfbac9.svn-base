@@ -1,0 +1,8 @@
+package ch.pschatzmann.news.utils;
+
+public class AnalyseSentiment {
+
+	public String process(String txt) {
+		return "neutral";
+	}
+}

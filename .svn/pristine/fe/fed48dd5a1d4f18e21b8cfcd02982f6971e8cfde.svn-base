@@ -1,0 +1,34 @@
+package ch.pschatzmann.news.processing;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+
+import org.apache.solr.client.solrj.response.QueryResponse;
+
+import ch.pschatzmann.news.Document;
+import ch.pschatzmann.news.SolrDocumentStore;
+
+/**
+ * This class has been implemented to be used by Spark. We return the list of page numbers which can be serialized and
+ * a method to get the data by page number
+ * @author pschatzmann
+ *
+ */
+public class PagedDocuments implements Serializable {
+	private SolrPagedQuery q;
+	private long page;
+	
+	public PagedDocuments(SolrPagedQuery q, long page) {
+		this.q = q;
+		this.page= page;
+	}
+
+	public List<Document> values() {
+		return q.getPage(page).getBeans(Document.class);
+	}
+
+}

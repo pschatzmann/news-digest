@@ -1,0 +1,99 @@
+package ch.pschatzmann.news.processing;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.MapSolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * SolrQuery which is returning QueryResponse objects with length number of
+ * entries as stream as Iterator, Iterable and Stream.
+ * 
+ * @author pschatzmann
+ *
+ */
+public class SolrPagedQuery implements Iterator<QueryResponse>, Iterable<QueryResponse> {
+	private static Logger log = LoggerFactory.getLogger(SolrPagedQuery.class);
+	private QueryResponse response;
+	private Map<String, String> search;
+	private SolrClient client;
+	private long pos = 0;
+	private int length;
+	private long max = 0;
+	private String coreName;
+
+	public SolrPagedQuery(SolrClient client, Map<String, String> search, String coreName, int length) {
+		this.length = length;
+		this.search = search;
+		this.client = client;
+		this.coreName = coreName;
+	}
+
+	@Override
+	public boolean hasNext() {
+		return pos * length <= max;
+	}
+
+	@Override
+	public QueryResponse next() {
+		response = getPage(pos);
+		if (pos==0) {
+			max = response.getResults().getNumFound();
+		}
+		pos++;
+		return response;
+	}
+
+	public QueryResponse getPage(long page) {
+		try {
+			log.info("Processing page {}", pos);
+			MapSolrParams queryParams = new MapSolrParams(search);
+			search.put("rows", "" + length);
+			search.put("start", "" + (page * length));
+			QueryResponse response = client.query(coreName, queryParams);
+			return response;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public Iterator<QueryResponse> iterator() {
+		return this;
+	}
+
+	/**
+	 * Returns the result as stream
+	 * 
+	 * @return
+	 */
+	public Stream<QueryResponse> stream() {
+		return StreamSupport.stream(this.spliterator(), false);
+	}
+	
+	/**
+	 * Returns the number of pages
+	 * @return
+	 */
+	public long getPages() {
+		return (long)Math.ceil((double)max / (double)length);
+	}
+	
+	/**
+	 * Returns a list of paged document which where the evaluation is lazy
+	 * @return
+	 */
+	public List<PagedDocuments> pages() {
+		return LongStream.range(0, getPages()).boxed().map(pos -> new PagedDocuments(this,pos)).collect(Collectors.toList());
+	}
+
+}

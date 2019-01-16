@@ -1,0 +1,44 @@
+package ch.pschatzmann.news.utils;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import opennlp.tools.namefind.NameFinderME;
+import opennlp.tools.namefind.TokenNameFinderModel;
+import opennlp.tools.tokenize.TokenizerME;
+import opennlp.tools.tokenize.TokenizerModel;
+import opennlp.tools.util.Span;
+
+/**
+ * Determine Named Entities with the help of OpenNLP
+ * 
+ * @author pschatzmann
+ *
+ */
+public class AnalyseNamedEntity {
+	private TokenizerME tokenizer;
+	private NameFinderME nameFinder;
+
+	public AnalyseNamedEntity() throws IOException {
+		FileInputStream inputStreamTokenizer = new FileInputStream("models/en-token.bin");
+		FileInputStream inputStreamNameFinder = new FileInputStream("models/en-ner-organization.bin");
+		tokenizer = new TokenizerME(new TokenizerModel(inputStreamTokenizer));
+		nameFinder = new NameFinderME(new TokenNameFinderModel(inputStreamNameFinder));
+		inputStreamTokenizer.close();
+		inputStreamNameFinder.close();
+	}
+
+	public synchronized Collection<String> process(String sentence) {
+		String tokens[] = tokenizer.tokenize(sentence);
+		Span spans[] = nameFinder.find(tokens);
+		List<String> list = new ArrayList();
+		for (Span s : spans)
+			list.add(tokens[s.getStart()]);
+		
+		return list;
+	}
+
+}

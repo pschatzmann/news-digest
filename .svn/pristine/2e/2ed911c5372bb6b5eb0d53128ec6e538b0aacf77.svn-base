@@ -1,0 +1,79 @@
+package ch.pschatzmann.news.processing;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import org.apache.solr.client.solrj.io.Tuple;
+import org.apache.solr.client.solrj.io.stream.CloudSolrStream;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.MapSolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.pschatzmann.news.SolrDocumentStore;
+
+/**
+ * Using Solr Stream implementation
+ * 
+ * @author pschatzmann
+ *
+ */
+public class SolrTupleStream implements Iterator<Tuple>, Iterable<Tuple>, Serializable {
+	private static final long serialVersionUID = 1L;
+	private CloudSolrStream cstream;
+	private boolean hasNext = true;
+	private Tuple tuple;
+	
+	public SolrTupleStream(CloudSolrStream cstream ) throws IOException {
+		this.cstream = cstream;
+		cstream.open();
+		getNext();
+	}
+
+	@Override
+	public boolean hasNext() {
+		return this.hasNext;
+	}
+
+	@Override
+	public Tuple next() {
+		Tuple result = tuple;
+		getNext();
+		return result;
+	}
+	
+	protected void getNext() {
+		try {
+			tuple = cstream.read();
+			hasNext = true;
+			if (tuple.EOF) {
+				hasNext = false;
+				cstream.close();
+			}
+		} catch(Exception ex) {
+			throw new RuntimeException();
+		}
+	}
+
+	@Override
+	public Iterator<Tuple> iterator() {
+		return this;
+	}
+
+	/**
+	 * Returns the result as stream
+	 * 
+	 * @return
+	 */
+	public Stream<Tuple> stream() {
+		return StreamSupport.stream(this.spliterator(), false);
+	}
+	
+}

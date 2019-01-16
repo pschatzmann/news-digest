@@ -1,0 +1,25 @@
+package ch.pschatzmann.news.utils;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import yahoofinance.Stock;
+import yahoofinance.YahooFinance;
+
+/**
+ * Determines the search terms for a ticker symbol: We use the stock name and
+ * the ticker symbol
+ * 
+ * @author pschatzmann
+ *
+ */
+public class TickerSearch {
+
+	public static Map<String, String> getSearchTerms(String tickerSymbol) throws IOException {
+		Stock stock = YahooFinance.get(tickerSymbol);
+		Map<String, String> map = new HashMap();
+		map.put("q", "content_t:('" + tickerSymbol + "', '" + stock.getName() + "')");
+		return map;
+	}
+}

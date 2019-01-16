@@ -1,0 +1,28 @@
+package ch.pschatzmann.news.processing;
+
+import javax.json.JsonObject;
+import javax.ws.rs.client.WebTarget;
+
+/**
+ * Paged query for the Guardian Search API
+ * @author pschatzmann
+ *
+ */
+public class NYTPagedQuery extends RestPagedQuery {
+	public NYTPagedQuery(WebTarget web){
+		super(web,"response","docs","","");
+	}
+	
+	/**
+	 * Calculate the number of pages. On each page there are 10 entries.
+	 */
+	protected void setupPages(JsonObject responseJson) {
+		if (this.getPage()==1) {
+			JsonObject meta = responseJson.getJsonObject("meta");
+			Integer hits = meta.getInt("hits");
+			long pages = (long) Math.ceil(hits.doubleValue() / 10.0);
+			this.setPages(pages);		
+		}
+	}
+
+}

@@ -1,0 +1,24 @@
+package ch.pschatzmann.news.utils;
+
+import org.deeplearning4j.text.corpora.sentiwordnet.SWN3;
+
+/**
+ * Classify into positive, neutral and negative
+ * 
+ * @author pschatzmann
+ *
+ */
+public class AnalyseSentiment {
+	private SWN3 svn3;
+
+	public String process(String txt) {
+		try {
+			if (svn3 == null) {
+				svn3 = new SWN3();
+			}
+			return svn3.classify(txt);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+}

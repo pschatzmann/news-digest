@@ -1,0 +1,236 @@
+package ch.pschatzmann.news;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.common.params.MapSolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.pschatzmann.news.processing.PagedDocuments;
+import ch.pschatzmann.news.processing.SolrPagedQuery;
+
+/**
+ * Access to Solr Repository to store and search for Headlines
+ * 
+ * @author pschatzmann
+ *
+ */
+public class SolrDocumentStore implements IDocumentStore {
+	private static Logger log = LoggerFactory.getLogger(SolrDocumentStore.class);
+	private SolrClient client;
+	private Set<String> ids = new HashSet();
+	private String coreName = Utils.property("solrCoreName","mycore");
+	private int pageSize = 10000;
+
+	/**
+	 * Simple Constructor
+	 */
+	public SolrDocumentStore() {
+		String urlString = Utils.property("solrURL","http://nuc.local:8983/solr");
+		this.client = new HttpSolrClient.Builder(urlString).build();
+	}
+
+	/**
+	 * Constructor which overrides the default parameters
+	 * 
+	 * @param coreName
+	 * @param urlString
+	 */
+	public SolrDocumentStore(String coreName, String urlString) {
+		this.coreName = coreName;
+		this.client = new HttpSolrClient.Builder(urlString).build();
+	}
+
+	/**
+	 * Add a collection of new documents
+	 * 
+	 * @param headlines
+	 */
+	public void add(Collection<Document> headlines) {
+		headlines.forEach(hl -> add(hl));
+	}
+
+	/**
+	 * Add a new document
+	 * 
+	 * @param doc
+	 */
+	public synchronized void add(Document doc) {
+		try {
+			log.info("Add {} ({})", doc.getId(), doc.getPublishDate_t());
+			if (!ids.contains(doc.getId())) {
+				final UpdateResponse response = client.addBean(coreName, doc, 10000);
+				client.commit(coreName);
+				ids.add(doc.getId());
+			}
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	/**
+	 * List all exiting documents which match the indicated query parameter
+	 * 
+	 * @param q
+	 * @return
+	 */
+	public List<Document> list(String q, int rowCount) {
+		final Map<String, String> queryParamMap = new HashMap<String, String>();
+		queryParamMap.put("q", q);
+		return list(queryParamMap, rowCount);
+	}
+
+	/**
+	 * List all existing documents which match the indicated search parameter
+	 * 
+	 * @param search
+	 * @param rowCount
+	 * @return
+	 */
+	public List<Document> list(Map<String, String> search, int rowCount) {
+		List<Document> result = new ArrayList();
+		try {
+			if (!search.containsKey("df")) {
+				search.put("df", "content_t");
+			}
+			if (!search.containsKey("rows")) {
+				search.put("rows", "" + rowCount);
+			}
+			if (!search.containsKey("sort")) {
+				search.put("sort", "id asc");
+			}
+
+			MapSolrParams queryParams = new MapSolrParams(search);
+			QueryResponse response = client.query(coreName, queryParams);
+			result = response.getBeans(Document.class);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the query result as stream which is iterating over all solr pages
+	 * 
+	 * @param search
+	 * @return
+	 */
+	public Stream<Document> stream(Map<String, String> search) {
+		if (!search.containsKey("df")) {
+			search.put("df", "content_t");
+		}
+		if (!search.containsKey("sort")) {
+			search.put("sort", "id asc");
+		}
+		Stream<QueryResponse> targetStream = new SolrPagedQuery(client, search, coreName, pageSize).stream();
+		return targetStream.flatMap(qr -> qr.getBeans(Document.class).stream());
+	}
+
+	/**
+	 * Returns the query result as stream which is iterating over all solr pages
+	 * 
+	 * @param q
+	 * @return
+	 */
+	public Stream<Document> stream(String q) {
+		final Map<String, String> queryParamMap = new HashMap<String, String>();
+		queryParamMap.put("q", q);
+		return stream(queryParamMap);
+	}
+
+	/** 
+	 * Access to paged document which provides the document numbers and individual pages
+	 * @param search
+	 * @return
+	 */
+	public List<PagedDocuments> pagedDocuments(Map<String, String> search) {
+		if (!search.containsKey("df")) {
+			search.put("df", "content_t");
+		}
+		if (!search.containsKey("sort")) {
+			search.put("sort", "id asc");
+		}
+		List<PagedDocuments> result = new SolrPagedQuery(client, search, coreName, pageSize).pages();
+		log.info("Numbe of pages: {}", result.size());
+		return result;
+	}
+
+	/**
+	 * Access to paged document which provides the document numbers and individual pages
+	 * @param q
+	 * @return
+	 */
+	public List<PagedDocuments> pagedDocuments(String q) {
+		final Map<String, String> queryParamMap = new HashMap<String, String>();
+		queryParamMap.put("q", q);
+		return pagedDocuments(queryParamMap);
+	}
+
+	/**
+	 * Checks if the query contains any data
+	 * 
+	 * @param queryParamMap
+	 * @return
+	 */
+	public boolean contains(Map<String, String> queryParamMap) {
+		try {
+			queryParamMap.put("count", "1");
+			MapSolrParams queryParams = new MapSolrParams(queryParamMap);
+			QueryResponse response = client.query(coreName, queryParams);
+			return response.getResults().getNumFound() > 0;
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	/**
+	 * Checks if the query contains any data
+	 */
+	@Override
+	public boolean contains(String q) {
+		final Map<String, String> queryParamMap = new HashMap<String, String>();
+		queryParamMap.put("q", q);
+		return contains(queryParamMap);
+	}
+
+	/**
+	 * Determines the Internal page size used by the stream interface. The default is 10000 records
+	 * 
+	 * @return
+	 */
+	public int getPageSize() {
+		return pageSize;
+	}
+
+	/**
+	 * Defines the Internal page size used by the stream interface
+	 * 
+	 * @param pageSize
+	 */
+	public void setPageSize(int pageSize) {
+		this.pageSize = pageSize;
+	}
+	
+	public SolrClient getSolrClient() {
+		return client;
+	}
+
+	public String getCoreName() {
+		return coreName;
+	}
+	
+	
+
+}

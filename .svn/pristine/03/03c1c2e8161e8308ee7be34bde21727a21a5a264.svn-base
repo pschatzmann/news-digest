@@ -1,0 +1,4 @@
+#!/bin/sh
+# Start smart edgar
+echo java -Xmx$xmx -server -Dlog4j.configuration=file:log4j.properties -cp *.jar ch.pschatzmann.news.Main 
+java -Xmx$xmx -server -Dlog4j.configuration=file:log4j.properties -cp *.jar ch.pschatzmann.news.Main 

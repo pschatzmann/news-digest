@@ -1,0 +1,44 @@
+package ch.pschatzmann.news;
+
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Loads a list of RSS sources from a CSV url resource
+ * 
+ * @author pschatzmann
+ *
+ */
+public class RSSData implements IData {
+	private List<RSSSingleData> list;
+
+	public RSSData(IDocumentStore store, URL url)  {
+		try {
+			if (url==null) {
+				url = Main.class.getResource("feeds.csv");
+			}
+			
+			list = Files.lines(Paths.get(url.toURI()))
+			.parallel()		
+			.map(line -> line.split(","))
+			.filter(sa -> sa.length==2)
+			.map(sa -> new RSSSingleData(store,sa[0],sa[1])).collect(Collectors.toList());	
+		} catch(Exception ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+	
+	public RSSData(IDocumentStore store)  {
+		this(store, null);		
+	}
+
+	
+	@Override
+	public void save() {
+		list.forEach(r -> r.save());
+	}
+
+}

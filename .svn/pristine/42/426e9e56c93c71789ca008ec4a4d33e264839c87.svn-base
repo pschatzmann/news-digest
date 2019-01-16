@@ -1,0 +1,3 @@
+#!/bin/sh
+# Start smart java main
+java -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -XshowSettings:vm -server -Dlog4j.configuration=file:log4j.properties -cp *.jar ch.pschatzmann.news.Main 

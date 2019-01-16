@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"ch.pschatzmann.news.test"},{"l":"ch.pschatzmann.news.utils"}]

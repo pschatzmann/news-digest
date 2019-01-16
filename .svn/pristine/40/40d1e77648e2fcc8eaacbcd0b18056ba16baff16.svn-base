@@ -1,0 +1,24 @@
+package ch.pschatzmann.news;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Store which supports the storing and searching of documents
+ * 
+ * @author pschatzmann
+ *
+ */
+public interface IDocumentStore {
+
+	void add(Document headline);
+
+	boolean contains(Map<String, String> criteria);
+
+	boolean contains(String id);
+
+	public List<Document> find(String q);
+
+	public List<Document> find(Map<String, String> criteria);
+
+}

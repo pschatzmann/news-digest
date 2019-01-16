@@ -1,0 +1,14 @@
+FROM openjdk:alpine
+MAINTAINER Phil Schatzmann <pschatzmann@gmail.com>
+RUN mkdir -p /usr/local/bin/news-digest
+COPY *.* /usr/local/bin/news-digest/
+WORKDIR /usr/local/bin/news-digest
+RUN chmod +x start.sh
+ENV xmx 3000m 
+
+EXPOSE 9997
+VOLUME /usr/local/bin/news-digest
+
+CMD ./start.sh ch.pschatzmann.news.Main
+ 
+

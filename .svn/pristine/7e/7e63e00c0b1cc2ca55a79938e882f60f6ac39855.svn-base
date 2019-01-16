@@ -1,0 +1,82 @@
+package ch.pschatzmann.news;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.pschatzmann.news.utils.FixedRateTimer;
+
+/**
+ * Loads the History data from the NWT and the RSS entries defined in the feeds.csv file 
+ * @author pschatzmann
+ *
+ */
+public class Main {
+	private static Logger log = LoggerFactory.getLogger(Main.class);
+	private static String solrCore = property("solrCore","mycore");
+	private static String solrUrl = property("solrUrl","http://nuc.local:8983/solr");
+	private static String startYear = property("startYear","2000");
+	private static String nytAPIKey = property("nytAPIKey","519c8dbe6aa64290922b802f241f94f0");
+	private static String guardianAPIKey = property("guardianAPIKey","10aaee97-5a18-4e57-b6e3-923e27f03041");
+	
+	
+	public static void main(String[] args) throws IOException, URISyntaxException, InterruptedException {
+		log.info("Document import has been started");
+		SolrDocumentStore store = new SolrDocumentStore(solrCore, solrUrl);
+
+		// save RSS every hour		
+		new RSSData(store).scheduleSave( 1000L * 60L * 60L * 1L);
+
+		// Guardian
+		new HistoryDataGuardian(store, startYear, guardianAPIKey,"business").scheduleSave( 1000L * 60L * 60L * 24L);
+
+		// save NYT history every day
+		new HistoryDataNYT(store, startYear, nytAPIKey).scheduleSave(1000L * 60L * 60L * 24L);	
+
+		log.info("The application is running...");
+		waitForEver();
+	}
+
+	
+	/**
+	 * Determines a the value of a system property or environment property
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public static String property(String name) {
+		// java properties
+		String str = System.getProperty(name);
+		if (str == null) {
+			// system environment
+			str = System.getenv(name);
+		}
+		return str;
+	}
+
+	/**
+	 * Determines a the value of a system property or environment property. If
+	 * nothing is defined we use the default value
+	 * 
+	 * @param name
+	 * @param defaultValue
+	 * @return
+	 */
+	public static String property(String name, String defaultValue) {
+		String str = property(name);
+		return str == null ? defaultValue : str;
+	}
+
+	/**
+	 * Infinite loop
+	 * @throws InterruptedException
+	 */
+	public static void waitForEver() throws InterruptedException {
+		while(true) {
+			Thread.sleep(100000);
+		}
+	}
+
+
+}

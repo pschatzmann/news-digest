@@ -1,0 +1,184 @@
+package ch.pschatzmann.news;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import ch.pschatzmann.news.utils.AnalyseNamedEntity;
+import ch.pschatzmann.news.utils.AnalyseSentiment;
+import yahoofinance.Stock;
+import yahoofinance.YahooFinance;
+
+/**
+ * Diverse utility methods like quote(), property() etc
+ * @author pschatzmann
+ *
+ */
+public class Utils {
+	static AnalyseNamedEntity namedEntity = new AnalyseNamedEntity();
+	static AnalyseSentiment sentiment = new AnalyseSentiment();
+	/**
+	 * Wrapps the stirng in double quotes
+	 * @param str
+	 * @return
+	 */
+	public static String quote(String str) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("\"");
+		sb.append(str);
+		sb.append("\"");
+		return sb.toString();
+	}
+	
+	/**
+	 * Determines a the value of a system property or environment property
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public static String property(String name) {
+		// java properties
+		String str = System.getProperty(name);
+		if (str == null) {
+			// system environment
+			str = System.getenv(name);
+		}
+		// investor.properties file
+		if (str == null) {
+			Properties p;
+			try {
+				p = Utils.getProperties(new File("news-digest.properties"));
+				if (p != null) {
+					str = p.getProperty(name);
+				}
+			} catch (Exception e) {
+			}
+		}
+
+		return str;
+	}
+
+	/**
+	 * Determines a the value of a system property or environment property. If
+	 * nothing is defined we use the default value
+	 * 
+	 * @param name
+	 * @param defaultValue
+	 * @return
+	 */
+	public static String property(String name, String defaultValue) {
+		String str = property(name);
+		return str == null ? defaultValue : str;
+	}
+
+	/**
+	 * Loads the properties from the indicated file
+	 * @param properties
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	public static Properties getProperties(File properties) throws FileNotFoundException, IOException {
+		InputStream input = new FileInputStream(properties);
+		Properties prop = null;
+		// load a properties file
+		try {
+			if (input!=null) {
+				prop = new Properties();
+				prop.load(input);
+			}
+		} finally {
+			if (input!=null)
+				input.close();
+		}
+		return prop;
+	}
+	
+	/**
+	 * Determines the named Entities
+	 * @param sentence
+	 * @return
+	 */
+	public static Collection<String> namedEntities(String sentence) {
+		return namedEntity.process(sentence);
+	}
+
+	/**
+	 * Returns the sentiment for the sentence
+	 * @param sentence
+	 * @return
+	 */
+	public static String sentiment(String sentence) {
+		return sentiment.process(sentence);
+	}
+	
+	/**
+	 * Returns the search terms for the ticker symbol
+	 * @param tickerSymbol
+	 * @return
+	 * @throws IOException
+	 */
+	public static Map<String, String> companyNameByTickerSearch(String tickerSymbol) throws IOException {
+		Stock stock = YahooFinance.get(tickerSymbol);
+		Map<String, String> map = new HashMap();
+		map.put("q", "content_t:('" + tickerSymbol + "', '" + stock.getName() + "')");
+		return map;
+	}
+
+
+	/**
+	 * Infinite loop
+	 * @throws InterruptedException
+	 */
+	public static void waitForEver() throws InterruptedException {
+		while(true) {
+			Thread.sleep(100000);
+		}
+	}
+	
+	
+	/**
+	 * Determines the file url from the file system or from the resources
+	 * @param name
+	 * @return
+	 * @throws MalformedURLException 
+	 */
+	public static URL getFileUrl(String name) throws MalformedURLException {
+		URL result = null;
+		File file = new File(name);
+		if (file.exists()) {
+			result = file.toURI().toURL();
+		} else {
+			result = Utils.class.getResource(name);
+		}
+		return result;
+	}
+	
+	/**
+	 * Checks if a String of Object is empty
+	 * @param obj
+	 * @return
+	 */
+	public static boolean isEmpty(Object obj) {
+		return obj==null || obj.toString().isEmpty();
+	}
+	
+	/**
+	 * Make sure that the indicated string is not empty
+	 * @param str
+	 * @param msg
+	 */
+	public static void checkNotEmpty(String str, String msg) {
+		if (isEmpty(str)) throw new RuntimeException(msg);
+	}
+
+
+}
